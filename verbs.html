@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Irregular Verbs Master</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --bg: #f1f5f9;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --subtext: #64748b;
+            --success: #22c55e;
+            --error: #ef4444;
+            --gold: #f59e0b;
+            --radius: 16px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 550px;
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            padding: 2rem; /* Iets minder padding voor compacter gevoel */
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        h1 { margin: 0.5rem 0; font-size: 1.8rem; }
+        p { color: var(--subtext); line-height: 1.6; }
+
+        .hidden { display: none !important; }
+
+        /* Dashboard */
+        .dashboard {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .main-progress-bar {
+            height: 12px;
+            background: #e2e8f0;
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .main-progress-fill {
+            height: 100%;
+            background: var(--success);
+            width: 0%;
+            transition: width 0.5s ease-out;
+        }
+
+        .stat-text {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--subtext);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .btn-grid { display: grid; gap: 1rem; }
+
+        /* Buttons */
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.2s;
+            width: 100%;
+        }
+        button:hover { background-color: var(--primary-dark); transform: translateY(-2px); }
+        button:active { transform: translateY(0); }
+        
+        button.secondary {
+            background-color: transparent;
+            color: var(--primary);
+            border: 2px solid #e2e8f0;
+        }
+        button.secondary:hover { border-color: var(--primary); background: transparent; }
+
+        button.danger-link {
+            background: none;
+            color: var(--subtext);
+            font-size: 0.8rem;
+            padding: 10px;
+            margin-top: 1rem;
+            text-decoration: underline;
+            box-shadow: none;
+        }
+        button.danger-link:hover { color: var(--error); background: none; transform: none; }
+
+        /* COMPACT HEADER STYLES */
+        .compact-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            height: 32px;
+        }
+
+        .icon-btn {
+            background: transparent;
+            color: var(--subtext);
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .icon-btn:hover {
+            background-color: #f1f5f9;
+            color: var(--error);
+            transform: none; /* Geen sprongetje */
+        }
+
+        .counter-badge {
+            background: #f1f5f9;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--subtext);
+        }
+
+        .streak-badge {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--subtext);
+        }
+
+        /* Game UI */
+        .verb-card {
+            background: #f8fafc;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border: 2px solid transparent;
+            transition: transform 0.2s;
+        }
+
+        .verb-inf { font-size: 2.2rem; font-weight: 800; display: block; }
+        .verb-nl { font-size: 1.1rem; color: var(--subtext); font-style: italic; }
+
+        .inputs-container { text-align: left; display: grid; gap: 1rem; }
+        label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--subtext); margin-left: 4px; }
+        
+        input {
+            width: 100%;
+            padding: 14px;
+            font-size: 1.1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            outline: none;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        input:focus { border-color: var(--primary); }
+        
+        .is-correct input { border-color: var(--success); background: #f0fdf4; color: #15803d; }
+        .is-wrong input { border-color: var(--error); background: #fef2f2; }
+        
+        .correction-text { color: var(--error); font-size: 0.9rem; margin-top: 5px; font-weight: 600; }
+
+        /* Streak Styles */
+        @keyframes streakPop { 0% { transform: scale(1); } 50% { transform: scale(1.5) rotate(10deg); } 100% { transform: scale(1); } }
+        .streak-active { animation: streakPop 0.4s ease-out; color: #f59e0b !important; font-weight: 900 !important; }
+        .streak-super { color: #f59e0b; text-shadow: 0 0 10px rgba(245, 158, 11, 0.4); }
+
+        /* Results */
+        .perfect-score {
+            border: 2px solid var(--gold);
+            background: #fffbeb;
+        }
+        .trophy-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            display: block;
+            animation: float 2s ease-in-out infinite;
+        }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        /* Confetti */
+        .confetti {
+            position: fixed;
+            top: -10px;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            z-index: 5;
+            animation: fall linear forwards;
+        }
+        @keyframes fall { to { transform: translateY(105vh) rotate(720deg); opacity: 0; } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .shake { animation: shake 0.4s ease-in-out; }
+
+        .session-progress { margin-top: 2rem; height: 4px; background: #e2e8f0; border-radius: 2px; }
+        .session-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s; }
+        .keyboard-hint { margin-top: 1.5rem; font-size: 0.8rem; color: #94a3b8; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <div id="screen-start">
+        <h1>Irregular Verbs</h1>
+        
+        <div class="dashboard">
+            <div class="stat-text">
+                <span>Totaal beheerst</span>
+                <span id="mastery-text">0 / 0</span>
+            </div>
+            <div class="main-progress-bar">
+                <div class="main-progress-fill" id="mastery-bar"></div>
+            </div>
+            <p id="mastery-msg" style="font-size: 0.9rem; margin-bottom: 0;">Nog genoeg te doen!</p>
+        </div>
+
+        <div class="btn-grid">
+            <button onclick="startSession('new')">Start Sessie (Nieuwe woorden)</button>
+            <button class="secondary" onclick="startSession('all')">Alles oefenen (Mix)</button>
+            <button class="secondary" onclick="startSession('review')">Herhaal alleen gekende</button>
+        </div>
+
+        <button class="danger-link" onclick="resetProgress()">Alle voortgang wissen (reset)</button>
+    </div>
+
+    <div id="screen-game" class="hidden">
+        
+        <div class="compact-header">
+            <button class="icon-btn" onclick="quitSession()" title="Stoppen">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+
+            <span class="counter-badge" id="session-counter">1 / 20</span>
+
+            <span class="streak-badge" id="streak-display">Streak: 0</span>
+        </div>
+
+        <div class="verb-card" id="card-visual">
+            <span class="verb-inf" id="lbl-inf">...</span>
+            <span class="verb-nl" id="lbl-nl">...</span>
+        </div>
+
+        <div class="inputs-container">
+            <div>
+                <label>Simple Past</label>
+                <input type="text" id="inp-past" autocomplete="off">
+                <div id="err-past" class="correction-text hidden"></div>
+            </div>
+            <div>
+                <label>Past Participle</label>
+                <input type="text" id="inp-part" autocomplete="off">
+                <div id="err-part" class="correction-text hidden"></div>
+            </div>
+        </div>
+
+        <button id="btn-action" style="margin-top: 2rem;" onclick="handleAction()">Controleren</button>
+        
+        <div class="keyboard-hint">Gebruik <b>Enter</b> om te springen, checken en door te gaan.</div>
+        
+        <div class="session-progress">
+            <div class="session-fill" id="session-bar"></div>
+        </div>
+    </div>
+
+    <div id="screen-result" class="hidden">
+        <div id="result-content">
+            </div>
+
+        <button onclick="location.reload()">Terug naar Overzicht</button>
+    </div>
+
+</div>
+
+<script>
+    // --- DATABASE ---
+    const verbsDB = [
+        { inf: "be", past: "was/were", part: "been", nl: "zijn" },
+        { inf: "beat", past: "beat", part: "beaten", nl: "slaan" },
+        { inf: "become", past: "became", part: "become", nl: "worden" },
+        { inf: "begin", past: "began", part: "begun", nl: "beginnen" },
+        { inf: "bend", past: "bent", part: "bent", nl: "buigen" },
+        { inf: "bet", past: "bet", part: "bet", nl: "wedden" },
+        { inf: "bind", past: "bound", part: "bound", nl: "(vast)binden" },
+        { inf: "bite", past: "bit", part: "bitten", nl: "bijten" },
+        { inf: "bleed", past: "bled", part: "bled", nl: "bloeden" },
+        { inf: "blow", past: "blew", part: "blown", nl: "blazen; waaien" },
+        { inf: "break", past: "broke", part: "broken", nl: "breken; kapotgaan" },
+        { inf: "bring", past: "brought", part: "brought", nl: "brengen" },
+        { inf: "build", past: "built", part: "built", nl: "bouwen" },
+        { inf: "burn", past: "burnt/burned", part: "burnt/burned", nl: "(ver)branden" },
+        { inf: "burst", past: "burst", part: "burst", nl: "barsten" },
+        { inf: "buy", past: "bought", part: "bought", nl: "kopen" },
+        { inf: "catch", past: "caught", part: "caught", nl: "vangen" },
+        { inf: "choose", past: "chose", part: "chosen", nl: "kiezen" },
+        { inf: "cling", past: "clung", part: "clung", nl: "zich vastklemmen" },
+        { inf: "come", past: "came", part: "come", nl: "komen" },
+        { inf: "cost", past: "cost", part: "cost", nl: "kosten" },
+        { inf: "creep", past: "crept", part: "crept", nl: "kruipen" },
+        { inf: "cut", past: "cut", part: "cut", nl: "snijden, knippen" },
+        { inf: "deal", past: "dealt", part: "dealt", nl: "handelen" },
+        { inf: "dig", past: "dug", part: "dug", nl: "graven" },
+        { inf: "do", past: "did", part: "done", nl: "doen" },
+        { inf: "draw", past: "drew", part: "drawn", nl: "trekken; tekenen" },
+        { inf: "dream", past: "dreamt/dreamed", part: "dreamt/dreamed", nl: "dromen" },
+        { inf: "drink", past: "drank", part: "drunk", nl: "drinken" },
+        { inf: "drive", past: "drove", part: "driven", nl: "(auto)rijden" },
+        { inf: "eat", past: "ate", part: "eaten", nl: "eten" },
+        { inf: "fall", past: "fell", part: "fallen", nl: "vallen" },
+        { inf: "feed", past: "fed", part: "fed", nl: "voeden" },
+        { inf: "feel", past: "felt", part: "felt", nl: "(zich) voelen" },
+        { inf: "fight", past: "fought", part: "fought", nl: "vechten" },
+        { inf: "find", past: "found", part: "found", nl: "vinden" },
+        { inf: "flee", past: "fled", part: "fled", nl: "ontvluchten" },
+        { inf: "fly", past: "flew", part: "flown", nl: "vliegen" },
+        { inf: "forbid", past: "forbade", part: "forbidden", nl: "verbieden" },
+        { inf: "forget", past: "forgot", part: "forgotten", nl: "vergeten" },
+        { inf: "forgive", past: "forgave", part: "forgiven", nl: "vergeven" },
+        { inf: "freeze", past: "froze", part: "frozen", nl: "(be)vriezen" },
+        { inf: "get", past: "got", part: "got", nl: "krijgen; worden" },
+        { inf: "give", past: "gave", part: "given", nl: "geven" },
+        { inf: "go", past: "went", part: "gone", nl: "gaan" },
+        { inf: "hang", past: "hung", part: "hung", nl: "(op)hangen" },
+        { inf: "have", past: "had", part: "had", nl: "hebben" },
+        { inf: "hear", past: "heard", part: "heard", nl: "horen" },
+        { inf: "hide", past: "hid", part: "hidden", nl: "verbergen" },
+        { inf: "hit", past: "hit", part: "hit", nl: "treffen; slaan" },
+        { inf: "hold", past: "held", part: "held", nl: "(vast)houden" },
+        { inf: "hurt", past: "hurt", part: "hurt", nl: "verwonden, bezeren" },
+        { inf: "keep", past: "kept", part: "kept", nl: "(be)houden, bewaren" },
+        { inf: "kneel", past: "knelt", part: "knelt", nl: "knielen" },
+        { inf: "know", past: "knew", part: "known", nl: "kennen; weten" },
+        { inf: "lay", past: "laid", part: "laid", nl: "leggen" },
+        { inf: "lead", past: "led", part: "led", nl: "leiden, aanvoeren" },
+        { inf: "lean", past: "leant/leaned", part: "leant/leaned", nl: "leunen" },
+        { inf: "leap", past: "leapt/leaped", part: "leapt/leaped", nl: "springen" },
+        { inf: "learn", past: "learnt/learned", part: "learnt/learned", nl: "leren" },
+        { inf: "leave", past: "left", part: "left", nl: "verlaten; achterlaten" },
+        { inf: "lend", past: "lent", part: "lent", nl: "(uit)lenen" },
+        { inf: "let", past: "let", part: "let", nl: "(toe)laten; verhuren" },
+        { inf: "lie", past: "lay", part: "lain", nl: "liggen" },
+        { inf: "light", past: "lit", part: "lit", nl: "aansteken" },
+        { inf: "lose", past: "lost", part: "lost", nl: "verliezen" },
+        { inf: "make", past: "made", part: "made", nl: "maken" },
+        { inf: "mean", past: "meant", part: "meant", nl: "bedoelen; betekenen" },
+        { inf: "meet", past: "met", part: "met", nl: "(elkaar) treffen, ontmoeten" },
+        { inf: "pay", past: "paid", part: "paid", nl: "betalen" },
+        { inf: "put", past: "put", part: "put", nl: "zetten, leggen" },
+        { inf: "read", past: "read", part: "read", nl: "lezen" },
+        { inf: "ride", past: "rode", part: "ridden", nl: "rijden (op)" },
+        { inf: "ring", past: "rang", part: "rung", nl: "rinkelen; luiden; (op)bellen" },
+        { inf: "rise", past: "rose", part: "risen", nl: "opstaan; opgaan" },
+        { inf: "run", past: "ran", part: "run", nl: "hardlopen, rennen" },
+        { inf: "saw", past: "sawed", part: "sawn", nl: "zagen" },
+        { inf: "say", past: "said", part: "said", nl: "zeggen" },
+        { inf: "see", past: "saw", part: "seen", nl: "zien" },
+        { inf: "seek", past: "sought", part: "sought", nl: "zoeken" },
+        { inf: "sell", past: "sold", part: "sold", nl: "verkopen" },
+        { inf: "send", past: "sent", part: "sent", nl: "sturen, verzenden" },
+        { inf: "set", past: "set", part: "set", nl: "(zich) stellen/zetten/plaatsen" },
+        { inf: "shake", past: "shook", part: "shaken", nl: "schudden" },
+        { inf: "shine", past: "shone", part: "shone", nl: "schijnen" },
+        { inf: "shoot", past: "shot", part: "shot", nl: "schieten" },
+        { inf: "show", past: "showed", part: "shown/showed", nl: "laten zien" },
+        { inf: "shrink", past: "shrank", part: "shrunk", nl: "krimpen" },
+        { inf: "shut", past: "shut", part: "shut", nl: "sluiten" },
+        { inf: "sing", past: "sang", part: "sung", nl: "zingen" },
+        { inf: "sink", past: "sank", part: "sunk", nl: "zinken" },
+        { inf: "sit", past: "sat", part: "sat", nl: "(gaan) zitten" },
+        { inf: "sleep", past: "slept", part: "slept", nl: "slapen" },
+        { inf: "smell", past: "smelt/smelled", part: "smelt/smelled", nl: "ruiken" },
+        { inf: "sow", past: "sowed", part: "sown/sowed", nl: "zaaien" },
+        { inf: "speak", past: "spoke", part: "spoken", nl: "spreken" },
+        { inf: "spell", past: "spelt/spelled", part: "spelt/spelled", nl: "spellen" },
+        { inf: "spend", past: "spent", part: "spent", nl: "uitgeven, besteden" },
+        { inf: "spill", past: "spilt/spilled", part: "spilt/spilled", nl: "morsen, verspillen" },
+        { inf: "spin", past: "spun", part: "spun", nl: "spinnen, draaien" },
+        { inf: "spit", past: "spat", part: "spat", nl: "spuwen, spugen" },
+        { inf: "split", past: "split", part: "split", nl: "splijten" },
+        { inf: "spoil", past: "spoilt/spoiled", part: "spoilt/spoiled", nl: "bederven, verwennen" },
+        { inf: "spread", past: "spread", part: "spread", nl: "(zich) verspreiden" },
+        { inf: "stand", past: "stood", part: "stood", nl: "staan" },
+        { inf: "steal", past: "stole", part: "stolen", nl: "stelen" },
+        { inf: "stick", past: "stuck", part: "stuck", nl: "(blijven) plakken/kleven" },
+        { inf: "sting", past: "stung", part: "stung", nl: "steken, prikken" },
+        { inf: "stink", past: "stank", part: "stunk", nl: "stinken" },
+        { inf: "strike", past: "struck", part: "struck", nl: "treffen, slaan" },
+        { inf: "swear", past: "swore", part: "sworn", nl: "zweren; vloeken" },
+        { inf: "sweep", past: "swept", part: "swept", nl: "vegen" },
+        { inf: "swim", past: "swam", part: "swum", nl: "zwemmen" },
+        { inf: "swing", past: "swung", part: "swung", nl: "zwaaien, schommelen" },
+        { inf: "take", past: "took", part: "taken", nl: "nemen" },
+        { inf: "teach", past: "taught", part: "taught", nl: "onderwijzen, lesgeven" },
+        { inf: "tear", past: "tore", part: "torn", nl: "scheuren" },
+        { inf: "tell", past: "told", part: "told", nl: "vertellen, zeggen" },
+        { inf: "think", past: "thought", part: "thought", nl: "denken, geloven" },
+        { inf: "throw", past: "threw", part: "thrown", nl: "gooien" },
+        { inf: "understand", past: "understood", part: "understood", nl: "begrijpen, verstaan" },
+        { inf: "wake", past: "woke", part: "woken", nl: "wakker worden/maken" },
+        { inf: "wear", past: "wore", part: "worn", nl: "dragen" },
+        { inf: "weep", past: "wept", part: "wept", nl: "wenen, huilen" },
+        { inf: "win", past: "won", part: "won", nl: "winnen" },
+        { inf: "wind", past: "wound", part: "wound", nl: "kronkelen; opwinden" },
+        { inf: "write", past: "wrote", part: "written", nl: "schrijven" }
+    ];
+
+    // --- LOGICA ---
+    const STORAGE_KEY = 'iv_progress';
+    let masteredList = [];
+
+    function loadProgress() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        masteredList = saved ? JSON.parse(saved) : [];
+        updateDashboard();
+    }
+
+    function saveProgress() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(masteredList));
+        updateDashboard();
+    }
+
+    function markAsMastered(inf) {
+        if (!masteredList.includes(inf)) {
+            masteredList.push(inf);
+            saveProgress();
+            return true; 
+        }
+        return false;
+    }
+
+    function resetProgress() {
+        if(confirm("Weet je zeker dat je alle voortgang wilt wissen?")) {
+            masteredList = [];
+            saveProgress();
+            location.reload();
+        }
+    }
+
+    // --- GAME STATE ---
+    let sessionQueue = [];
+    let initialQueueSize = 0;
+    let currentVerb = null;
+    let gameState = 'input'; 
+    let newlyMasteredCount = 0;
+    let streak = 0;
+    let sessionMistakes = 0;
+
+    // DOM References
+    const elStart = document.getElementById('screen-start');
+    const elGame = document.getElementById('screen-game');
+    const elResult = document.getElementById('screen-result');
+    const inpPast = document.getElementById('inp-past');
+    const inpPart = document.getElementById('inp-part');
+    const btnAction = document.getElementById('btn-action');
+
+    loadProgress();
+
+    function updateDashboard() {
+        const total = verbsDB.length;
+        const done = masteredList.length;
+        const pct = Math.round((done / total) * 100);
+        
+        document.getElementById('mastery-text').textContent = `${done} / ${total}`;
+        document.getElementById('mastery-bar').style.width = `${pct}%`;
+
+        const msgEl = document.getElementById('mastery-msg');
+        if (pct === 100) msgEl.textContent = "Fantastisch! Je kent alles voor de toets!";
+        else if (pct > 75) msgEl.textContent = "Je bent er bijna!";
+        else if (pct > 50) msgEl.textContent = "Over de helft, ga zo door!";
+        else msgEl.textContent = "Nog genoeg te doen!";
+    }
+
+    function startSession(mode) {
+        let pool = [];
+        if (mode === 'new') {
+            pool = verbsDB.filter(v => !masteredList.includes(v.inf));
+            if (pool.length === 0) return alert("Je hebt alle woorden al 'beheerst' gemarkeerd!");
+            pool.sort(() => Math.random() - 0.5);
+            pool = pool.slice(0, 20);
+        } else if (mode === 'review') {
+            pool = verbsDB.filter(v => masteredList.includes(v.inf));
+            if (pool.length === 0) return alert("Je hebt nog geen woorden beheerst.");
+            pool.sort(() => Math.random() - 0.5);
+            pool = pool.slice(0, 20);
+        } else {
+            pool = [...verbsDB];
+            pool.sort(() => Math.random() - 0.5);
+            pool = pool.slice(0, 20);
+        }
+
+        sessionQueue = pool;
+        initialQueueSize = pool.length;
+        newlyMasteredCount = 0;
+        streak = 0;
+        sessionMistakes = 0;
+
+        elStart.classList.add('hidden');
+        elGame.classList.remove('hidden');
+        elResult.classList.add('hidden');
+        nextCard();
+    }
+
+    function quitSession() {
+        if(confirm("Weet je zeker dat je wilt stoppen?")) {
+            elGame.classList.add('hidden');
+            elStart.classList.remove('hidden');
+            updateDashboard();
+        }
+    }
+
+    function nextCard() {
+        if (sessionQueue.length === 0) {
+            finishSession();
+            return;
+        }
+
+        currentVerb = sessionQueue.shift();
+        gameState = 'input';
+
+        document.getElementById('lbl-inf').textContent = currentVerb.inf;
+        document.getElementById('lbl-nl').textContent = currentVerb.nl;
+        
+        inpPast.value = '';
+        inpPart.value = '';
+        inpPast.disabled = false;
+        inpPart.disabled = false;
+        inpPast.parentElement.className = '';
+        inpPart.parentElement.className = '';
+        document.getElementById('err-past').classList.add('hidden');
+        document.getElementById('err-part').classList.add('hidden');
+        
+        updateStreakUI(); 
+        document.getElementById('session-counter').textContent = `${initialQueueSize - sessionQueue.length} / ${initialQueueSize}`;
+        
+        const pct = ((initialQueueSize - sessionQueue.length) / initialQueueSize) * 100;
+        document.getElementById('session-bar').style.width = `${pct}%`;
+
+        btnAction.textContent = "Controleren";
+        btnAction.style.background = "var(--primary)";
+        setTimeout(() => inpPast.focus(), 50);
+    }
+
+    function normalize(s) { return s.trim().toLowerCase(); }
+
+    function fireConfetti(mode = 'normal') {
+        const container = document.body;
+        const colors = mode === 'gold' 
+            ? ['#f59e0b', '#fbbf24', '#d97706', '#fffbeb', '#ffffff'] 
+            : ['#ef4444', '#22c55e', '#3b82f6', '#f59e0b', '#ec4899'];
+        
+        const count = mode === 'gold' ? 150 : 60;
+
+        for (let i = 0; i < count; i++) {
+            const el = document.createElement('div');
+            el.classList.add('confetti');
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            el.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+            el.style.width = (Math.random() * 8 + 5) + 'px';
+            el.style.height = el.style.width;
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 4000);
+        }
+    }
+
+    function handleAction() {
+        if (gameState === 'feedback') {
+            nextCard();
+            return;
+        }
+
+        const uPast = normalize(inpPast.value);
+        const uPart = normalize(inpPart.value);
+        const okPast = currentVerb.past.split('/').map(normalize).includes(uPast);
+        const okPart = currentVerb.part.split('/').map(normalize).includes(uPart);
+
+        const divPast = inpPast.parentElement;
+        const divPart = inpPart.parentElement;
+
+        if (okPast) divPast.classList.add('is-correct');
+        else {
+            divPast.classList.add('is-wrong');
+            document.getElementById('err-past').textContent = currentVerb.past;
+            document.getElementById('err-past').classList.remove('hidden');
+        }
+
+        if (okPart) divPart.classList.add('is-correct');
+        else {
+            divPart.classList.add('is-wrong');
+            document.getElementById('err-part').textContent = currentVerb.part;
+            document.getElementById('err-part').classList.remove('hidden');
+        }
+
+        if (okPast && okPart) {
+            streak++;
+            updateStreakUI();
+            
+            if (streak > 0 && streak % 10 === 0) fireConfetti('gold');
+            else if (streak > 0 && streak % 5 === 0) fireConfetti('normal');
+
+            if (!currentVerb.isRetry) {
+                if (markAsMastered(currentVerb.inf)) newlyMasteredCount++;
+            }
+
+            btnAction.textContent = "Volgende...";
+            btnAction.style.background = "var(--success)";
+            setTimeout(nextCard, 600);
+        } else {
+            streak = 0;
+            sessionMistakes++;
+            updateStreakUI();
+            
+            document.getElementById('card-visual').classList.add('shake');
+            setTimeout(() => document.getElementById('card-visual').classList.remove('shake'), 500);
+
+            currentVerb.isRetry = true;
+            let insertIdx = Math.min(sessionQueue.length, 3);
+            sessionQueue.splice(insertIdx, 0, currentVerb);
+
+            gameState = 'feedback';
+            btnAction.textContent = "Volgende (Enter)";
+            btnAction.style.background = "var(--error)";
+            inpPast.disabled = true;
+            inpPart.disabled = true;
+        }
+    }
+
+    function updateStreakUI() {
+        const el = document.getElementById('streak-display');
+        
+        if (streak === 0) {
+            el.textContent = "Streak: 0";
+            el.style.color = "var(--subtext)";
+            el.classList.remove('streak-active', 'streak-super');
+        } else {
+            el.textContent = `🔥 Streak: ${streak}`;
+            el.style.color = "var(--success)";
+            el.classList.remove('streak-active');
+            void el.offsetWidth;
+            el.classList.add('streak-active');
+
+            if (streak % 10 === 0) {
+                el.textContent = `🌟 SUPERNOVA!`;
+                el.classList.add('streak-super');
+            } else if (streak % 5 === 0) {
+                el.textContent = `🎉 5 OP RIJ!`;
+            }
+        }
+    }
+
+    function finishSession() {
+        elGame.classList.add('hidden');
+        elResult.classList.remove('hidden');
+        
+        const resultContent = document.getElementById('result-content');
+        let html = '';
+
+        if (sessionMistakes === 0) {
+            fireConfetti('gold');
+            html += `
+                <div class="verb-card perfect-score">
+                    <span class="trophy-icon">🏆</span>
+                    <h2>PERFECT SCORE!</h2>
+                    <p style="color: #d97706; font-weight: bold;">Geen enkele fout gemaakt!</p>
+                </div>
+            `;
+        } else {
+            html += `<h2>Sessie Klaar! 🎉</h2>`;
+        }
+
+        html += `
+            <p>Je voortgang is opgeslagen.</p>
+            <div class="dashboard">
+                <div style="font-size: 2.5rem; font-weight: 800; color: var(--success);">${newlyMasteredCount}</div>
+                <div style="color: var(--subtext);">Nieuwe woorden beheerst deze sessie</div>
+            </div>
+        `;
+
+        resultContent.innerHTML = html;
+        updateDashboard();
+    }
+
+    // --- KEYBOARD ---
+    document.addEventListener('keydown', (e) => {
+        if (elGame.classList.contains('hidden')) return;
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (gameState === 'feedback') nextCard();
+            else {
+                if (document.activeElement === inpPast) inpPart.focus();
+                else handleAction();
+            }
+        }
+    });
+
+</script>
+</body>
+</html>
